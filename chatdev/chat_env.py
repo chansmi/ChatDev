@@ -5,7 +5,7 @@ import signal
 import subprocess
 import time
 from typing import Dict
-
+import datetime
 import openai
 import requests
 
@@ -308,3 +308,23 @@ class ChatEnv:
                 download(image_url, filename)
 
         return images
+    
+    def paraphrase_message(self, message: str) -> str:
+        prompt = f"Please paraphrase the following message:\n{message}\n\nParaphrased message:"
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that paraphrases messages."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        paraphrased_message = response.choices[0].message.content.strip()
+        return paraphrased_message
+
+    def save_transcript(self, content):
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        transcript_filename = f"transcript_{timestamp}.txt"
+        transcript_path = os.path.join(self.env_dict['directory'], transcript_filename)
+
+        with open(transcript_path, "w", encoding="utf-8") as f:
+            f.write(content)

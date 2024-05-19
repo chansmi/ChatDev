@@ -61,8 +61,9 @@ class Phase(ABC):
             model_type=ModelType.GPT_3_5_TURBO,
             memory=None,
             placeholders=None,
-            chat_turn_limit=10
-    ) -> str:
+            chat_turn_limit=10,
+            paraphrase_func=None
+    ):
         """
 
         Args:
@@ -130,14 +131,22 @@ class Phase(ABC):
             # 4. then input_assistant_msg send to LLM and get user_response
             # all above are done in role_play_session.step, which contains two interactions with LLM
             # the first interaction is logged in role_play_session.init_chat
-            assistant_response, user_response = role_play_session.step(input_user_msg, chat_turn_limit == 1)
+            paraphrased_user_msg = paraphrase_func(input_user_msg.content)
+            assistant_response, _ = role_play_session.step(ChatMessage(paraphrased_user_msg), chat_turn_limit == 1)
 
+            if isinstance(assistant_response.msg, ChatMessage):
+                paraphrased_assistant_msg = paraphrase_func(assistant_response.msg.content)
+                user_response, _ = role_play_session.step(ChatMessage(paraphrased_assistant_msg))
+            else:
+                user_response = assistant_response
             conversation_meta = "**" + assistant_role_name + "<->" + user_role_name + " on : " + str(
                 phase_name) + ", turn " + str(i) + "**\n\n"
 
             # TODO: max_tokens_exceeded errors here
             if isinstance(assistant_response.msg, ChatMessage):
                 # we log the second interaction here
+                chat_env.save_transcript(conversation_meta + "[" + role_play_session.user_agent.system_message.content + "]\n\n" + assistant_response.msg.content)
+
                 log_visualize(role_play_session.assistant_agent.role_name,
                               conversation_meta + "[" + role_play_session.user_agent.system_message.content + "]\n\n" + assistant_response.msg.content)
                 if role_play_session.assistant_agent.info:
@@ -148,6 +157,7 @@ class Phase(ABC):
 
             if isinstance(user_response.msg, ChatMessage):
                 # here is the result of the second interaction, which may be used to start the next chat turn
+                chat_env.save_transcript(conversation_meta + "[" + role_play_session.assistant_agent.system_message.content + "]\n\n" + user_response.msg.content)
                 log_visualize(role_play_session.user_agent.role_name,
                               conversation_meta + "[" + role_play_session.assistant_agent.system_message.content + "]\n\n" + user_response.msg.content)
                 if role_play_session.user_agent.info:
@@ -275,7 +285,7 @@ class Phase(ABC):
         """
         pass
 
-    def execute(self, chat_env, chat_turn_limit, need_reflect) -> ChatEnv:
+    def execute(self, chat_env, chat_turn_limit, need_reflect, paraphrase_func) -> ChatEnv:
         """
         execute the chatting in this phase
         1. receive information from environment: update the phase environment from global environment
@@ -293,18 +303,19 @@ class Phase(ABC):
         self.update_phase_env(chat_env)
         self.seminar_conclusion = \
             self.chatting(chat_env=chat_env,
-                          task_prompt=chat_env.env_dict['task_prompt'],
-                          need_reflect=need_reflect,
-                          assistant_role_name=self.assistant_role_name,
-                          user_role_name=self.user_role_name,
-                          phase_prompt=self.phase_prompt,
-                          phase_name=self.phase_name,
-                          assistant_role_prompt=self.assistant_role_prompt,
-                          user_role_prompt=self.user_role_prompt,
-                          chat_turn_limit=chat_turn_limit,
-                          placeholders=self.phase_env,
-                          memory=chat_env.memory,
-                          model_type=self.model_type)
+                        task_prompt=chat_env.env_dict['task_prompt'],
+                        need_reflect=need_reflect,
+                        assistant_role_name=self.assistant_role_name,
+                        user_role_name=self.user_role_name,
+                        phase_prompt=self.phase_prompt,
+                        phase_name=self.phase_name,
+                        assistant_role_prompt=self.assistant_role_prompt,
+                        user_role_prompt=self.user_role_prompt,
+                        chat_turn_limit=chat_turn_limit,
+                        placeholders=self.phase_env,
+                        memory=chat_env.memory,
+                        model_type=self.model_type,
+                        paraphrase_func=paraphrase_func)
         chat_env = self.update_chat_env(chat_env)
         return chat_env
 
