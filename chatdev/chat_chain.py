@@ -134,13 +134,17 @@ class ChatChain:
         if phase_type == "SimplePhase":
             max_turn_step = phase_item['max_turn_step']
             need_reflect = check_bool(phase_item['need_reflect'])
-            if phase in self.phases:
-                self.chat_env = self.phases[phase].execute(self.chat_env,
-                                            self.chat_turn_limit_default if max_turn_step <= 0 else max_turn_step,
-                                            need_reflect,
-                                            self.chat_env.paraphrase_message)
-            else:
-                raise RuntimeError(f"Phase '{phase}' is not yet implemented in chatdev.phase")
+            if phase_type == "SimplePhase":
+                max_turn_step = phase_item['max_turn_step']
+                need_reflect = check_bool(phase_item['need_reflect'])
+                if phase in self.phases:
+                    self.chat_env = self.phases[phase].execute(self.chat_env,
+                                                            self.chat_turn_limit_default if max_turn_step <= 0 else max_turn_step,
+                                                            need_reflect,
+                                                            self.chat_env.paraphrase_message)
+                else:
+                    raise RuntimeError(f"Phase '{phase}' is not yet implemented in chatdev.phase")
+    # ...
         # For ComposedPhase, we create instance here then conduct the "ComposedPhase.execute" method
         elif phase_type == "ComposedPhase":
             cycle_num = phase_item['cycleNum']

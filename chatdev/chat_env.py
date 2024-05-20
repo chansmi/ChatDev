@@ -310,10 +310,10 @@ class ChatEnv:
     def paraphrase_message(self, message: str) -> str:
         prompt = f"Please paraphrase the following message:\n{message}\n\nParaphrased message:"
         response = client.chat.completions.create(model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant that paraphrases messages."},
-            {"role": "user", "content": prompt}
-        ])
+                                                messages=[
+                                                    {"role": "system", "content": "You are a helpful assistant that paraphrases messages."},
+                                                    {"role": "user", "content": prompt}
+                                                ])
         paraphrased_message = response.choices[0].message.content.strip()
         return paraphrased_message
 

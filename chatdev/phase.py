@@ -47,25 +47,23 @@ class Phase(ABC):
         self.log_filepath = log_filepath
 
     @log_arguments
-    def chatting(
-            self,
-            chat_env,
-            task_prompt: str,
-            assistant_role_name: str,
-            user_role_name: str,
-            phase_prompt: str,
-            phase_name: str,
-            assistant_role_prompt: str,
-            user_role_prompt: str,
-            task_type=TaskType.CHATDEV,
-            need_reflect=False,
-            with_task_specify=False,
-            model_type=ModelType.GPT_3_5_TURBO,
-            memory=None,
-            placeholders=None,
-            chat_turn_limit=10,
-            paraphrase_func=None
-    ):
+    def chatting(self,
+                chat_env,
+                task_prompt: str,
+                assistant_role_name: str,
+                user_role_name: str,
+                phase_prompt: str,
+                phase_name: str,
+                assistant_role_prompt: str,
+                user_role_prompt: str,
+                task_type=TaskType.CHATDEV,
+                need_reflect=False,
+                with_task_specify=False,
+                model_type=ModelType.GPT_3_5_TURBO,
+                memory=None,
+                placeholders=None,
+                chat_turn_limit=10,
+                paraphrase_func=None):
         """
 
         Args:
@@ -129,7 +127,9 @@ class Phase(ABC):
             print(f"Original user message: {input_user_msg.content}")
             paraphrased_user_msg = paraphrase_func(input_user_msg.content)
             print(f"Paraphrased user message: {paraphrased_user_msg}")
-            
+            #chat_env.save_transcript(user_response.msg.content, paraphrased_user_msg)
+
+
             paraphrased_user_msg_obj = ChatMessage(
                 content=paraphrased_user_msg,
                 role_type=input_user_msg.role_type,
@@ -147,7 +147,9 @@ class Phase(ABC):
                 print(f"Original assistant message: {assistant_response.msg.content}")
                 paraphrased_assistant_msg = paraphrase_func(assistant_response.msg.content)
                 print(f"Paraphrased assistant message: {paraphrased_assistant_msg}")
-                
+                #chat_env.save_transcript(assistant_response.msg.content, paraphrased_assistant_msg)
+
+
                 paraphrased_assistant_msg_obj = ChatMessage(
                     content=paraphrased_assistant_msg,
                     role_type=assistant_response.msg.role_type,
@@ -163,6 +165,7 @@ class Phase(ABC):
             else:
                 user_response = assistant_response
 
+            
             if role_play_session.user_agent.info or role_play_session.assistant_agent.info:
                 break
 
@@ -205,39 +208,40 @@ class Phase(ABC):
         # conduct self reflection
         if need_reflect:
             if seminar_conclusion in [None, ""]:
-                seminar_conclusion = "<INFO> " + self.self_reflection(task_prompt, role_play_session, phase_name,
-                                                                      chat_env)
+                seminar_conclusion = "<INFO> " + self.self_reflection(task_prompt, role_play_session, phase_name, chat_env, paraphrase_func)
             if "recruiting" in phase_name:
                 if "Yes".lower() not in seminar_conclusion.lower() and "No".lower() not in seminar_conclusion.lower():
-                    seminar_conclusion = "<INFO> " + self.self_reflection(task_prompt, role_play_session,
-                                                                          phase_name,
-                                                                          chat_env)
+                    seminar_conclusion = "<INFO> " + self.self_reflection(task_prompt, role_play_session, phase_name, chat_env, paraphrase_func)
             elif seminar_conclusion in [None, ""]:
-                seminar_conclusion = "<INFO> " + self.self_reflection(task_prompt, role_play_session, phase_name,
-                                                                      chat_env)
+                seminar_conclusion = "<INFO> " + self.self_reflection(task_prompt, role_play_session, phase_name, chat_env, paraphrase_func)
         else:
             seminar_conclusion = assistant_response.msg.content
 
+
+        if seminar_conclusion is None:
+            seminar_conclusion = paraphrased_assistant_msg
+
         log_visualize("**[Seminar Conclusion]**:\n\n {}".format(seminar_conclusion))
-        seminar_conclusion = seminar_conclusion.split("<INFO>")[-1]
+        if seminar_conclusion is not None:
+            seminar_conclusion = seminar_conclusion.split("<INFO>")[-1]
         return seminar_conclusion
 
     def self_reflection(self,
                         task_prompt: str,
                         role_play_session: RolePlaying,
                         phase_name: str,
-                        chat_env: ChatEnv) -> str:
+                        chat_env: ChatEnv,
+                        paraphrase_func) -> str:
         """
-
         Args:
             task_prompt: user query prompt for building the software
             role_play_session: role play session from the chat phase which needs reflection
             phase_name: name of the chat phase which needs reflection
             chat_env: global chatchain environment
+            paraphrase_func: the paraphrase function to be used for paraphrasing messages
 
         Returns:
             reflected_content: str, reflected results
-
         """
         messages = role_play_session.assistant_agent.stored_messages if len(
             role_play_session.assistant_agent.stored_messages) >= len(
@@ -253,25 +257,26 @@ class Phase(ABC):
             question = """Conclude the programming language being discussed for software development, in the format: "*" where '*' represents a programming language." """
         elif phase_name == "EnvironmentDoc":
             question = """According to the codes and file format listed above, write a requirements.txt file to specify the dependencies or packages required for the project to run properly." """
+        elif phase_name == "CodeComplete":
+            question = """Summarize the key points and tasks completed in this phase, in one sentence, e.g., "Implemented core features for the painting studio application." """
         else:
             raise ValueError(f"Reflection of phase {phase_name}: Not Assigned.")
 
-        # Reflections actually is a special phase between CEO and counselor
-        # They read the whole chatting history of this phase and give refined conclusion of this phase
         reflected_content = \
             self.chatting(chat_env=chat_env,
-                          task_prompt=task_prompt,
-                          assistant_role_name="Chief Executive Officer",
-                          user_role_name="Counselor",
-                          phase_prompt=self.reflection_prompt,
-                          phase_name="Reflection",
-                          assistant_role_prompt=self.ceo_prompt,
-                          user_role_prompt=self.counselor_prompt,
-                          placeholders={"conversations": messages, "question": question},
-                          need_reflect=False,
-                          memory=chat_env.memory,
-                          chat_turn_limit=1,
-                          model_type=self.model_type)
+                        task_prompt=task_prompt,
+                        assistant_role_name="Chief Executive Officer",
+                        user_role_name="Counselor",
+                        phase_prompt=self.reflection_prompt,
+                        phase_name="Reflection",
+                        assistant_role_prompt=self.ceo_prompt,
+                        user_role_prompt=self.counselor_prompt,
+                        placeholders={"conversations": messages, "question": question},
+                        need_reflect=False,
+                        memory=chat_env.memory,
+                        chat_turn_limit=1,
+                        model_type=self.model_type,
+                        paraphrase_func=paraphrase_func)
 
         if "recruiting" in phase_name:
             if "Yes".lower() in reflected_content.lower():
@@ -279,6 +284,7 @@ class Phase(ABC):
             return "No"
         else:
             return reflected_content
+
 
     @abstractmethod
     def update_phase_env(self, chat_env):
@@ -316,39 +322,24 @@ class Phase(ABC):
         pass
 
     def execute(self, chat_env, chat_turn_limit, need_reflect, paraphrase_func) -> ChatEnv:
-        """
-        execute the chatting in this phase
-        1. receive information from environment: update the phase environment from global environment
-        2. execute the chatting
-        3. change the environment: update the global environment using the conclusion
-        Args:
-            chat_env: global chat chain environment
-            chat_turn_limit: turn limit in each chat
-            need_reflect: flag for reflection
-
-        Returns:
-            chat_env: updated global chat chain environment using the conclusion from this phase execution
-
-        """
         self.update_phase_env(chat_env)
         self.seminar_conclusion = \
             self.chatting(chat_env=chat_env,
-                      task_prompt=chat_env.env_dict['task_prompt'],
-                      need_reflect=need_reflect,
-                      assistant_role_name=self.assistant_role_name,
-                      user_role_name=self.user_role_name,
-                      phase_prompt=self.phase_prompt,
-                      phase_name=self.phase_name,
-                      assistant_role_prompt=self.assistant_role_prompt,
-                      user_role_prompt=self.user_role_prompt,
-                      chat_turn_limit=chat_turn_limit,
-                      placeholders=self.phase_env,
-                      memory=chat_env.memory,
-                      model_type=self.model_type,
-                      paraphrase_func=paraphrase_func)
+                        task_prompt=chat_env.env_dict['task_prompt'],
+                        need_reflect=need_reflect,
+                        assistant_role_name=self.assistant_role_name,
+                        user_role_name=self.user_role_name,
+                        phase_prompt=self.phase_prompt,
+                        phase_name=self.phase_name,
+                        assistant_role_prompt=self.assistant_role_prompt,
+                        user_role_prompt=self.user_role_prompt,
+                        chat_turn_limit=chat_turn_limit,
+                        placeholders=self.phase_env,
+                        memory=chat_env.memory,
+                        model_type=self.model_type,
+                        paraphrase_func=paraphrase_func)
         chat_env = self.update_chat_env(chat_env)
         return chat_env
-
 
 class DemandAnalysis(Phase):
     def __init__(self, **kwargs):
