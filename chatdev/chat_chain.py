@@ -134,13 +134,16 @@ class ChatChain:
         if phase_type == "SimplePhase":
             max_turn_step = phase_item['max_turn_step']
             need_reflect = check_bool(phase_item['need_reflect'])
-            if phase in self.phases:
-                self.chat_env = self.phases[phase].execute(self.chat_env,
-                                            self.chat_turn_limit_default if max_turn_step <= 0 else max_turn_step,
-                                            need_reflect,
-                                            self.chat_env.paraphrase_message)
-            else:
-                raise RuntimeError(f"Phase '{phase}' is not yet implemented in chatdev.phase")
+            if phase_type == "SimplePhase":
+                max_turn_step = phase_item['max_turn_step']
+                need_reflect = check_bool(phase_item['need_reflect'])
+                if phase in self.phases:
+                    self.chat_env = self.phases[phase].execute(self.chat_env,
+                                                            self.chat_turn_limit_default if max_turn_step <= 0 else max_turn_step,
+                                                            need_reflect,
+                                                            self.chat_env.paraphrase_message)
+                else:
+                    raise RuntimeError(f"Phase '{phase}' is not yet implemented in chatdev.phase")
         # For ComposedPhase, we create instance here then conduct the "ComposedPhase.execute" method
         elif phase_type == "ComposedPhase":
             cycle_num = phase_item['cycleNum']
@@ -160,13 +163,13 @@ class ChatChain:
             raise RuntimeError(f"PhaseType '{phase_type}' is not yet implemented.")
 
     def execute_chain(self):
-        """
-        execute the whole chain based on ChatChainConfig.json
-        Returns: None
-
-        """
         for phase_item in self.chain:
-            self.execute_step(phase_item)
+            try:
+                self.execute_step(phase_item)
+                log_visualize(f"Phase [{phase_item['phase']}] executed successfully.")
+            except Exception as e:
+                log_visualize(f"Error occurred during the execution of phase [{phase_item['phase']}]. Error: {str(e)}")
+                raise e
 
     def get_logfilepath(self):
         """

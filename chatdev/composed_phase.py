@@ -117,47 +117,29 @@ class ComposedPhase(ABC):
         pass
 
     def execute(self, chat_env) -> ChatEnv:
-        """
-        similar to Phase.execute, but add control for breaking the loop
-        1. receive information from environment(ComposedPhase): update the phase environment from global environment
-        2. for each SimplePhase in ComposedPhase
-            a) receive information from environment(SimplePhase)
-            b) check loop break
-            c) execute the chatting
-            d) change the environment(SimplePhase)
-            e) check loop break
-        3. change the environment(ComposedPhase): update the global environment using the conclusion
-
-        Args:
-            chat_env: global chat chain environment
-
-        Returns:
-
-        """
         self.update_phase_env(chat_env)
         for cycle_index in range(1, self.cycle_num + 1):
             for phase_item in self.composition:
                 assert phase_item["phaseType"] == "SimplePhase"
                 phase = phase_item['phase']
+                max_turn_step = phase_item['max_turn_step']
+                need_reflect = check_bool(phase_item['need_reflect'])
                 self.phase_env["cycle_index"] = cycle_index
-                log_visualize(f"**[Execute Detail]**\n\nexecute SimplePhase:[{phase}] in ComposedPhase:[{self.phase_name}], cycle {cycle_index}")
-
+                log_visualize(
+                    f"**[Execute Detail]**\n\nexecute SimplePhase:[{phase}] in ComposedPhase:[{self.phase_name}], cycle {cycle_index}")
                 if phase in self.phases:
-                    self.phases[phase].phase_env = self.phase_env
-                    self.phases[phase].update_phase_env(chat_env)
-                    
-                    max_turn_step = self.config_phase[phase].get('max_turn_step', 10)
-                    need_reflect = check_bool(self.config_phase[phase].get('need_reflect', 'False'))
-                    chat_env = self.phases[phase].execute(chat_env, max_turn_step, need_reflect, chat_env.paraphrase_message)
-                    
-                    if self.break_cycle(self.phases[phase].phase_env):
-                        chat_env = self.update_chat_env(chat_env)
-                        return chat_env
+                    try:
+                        chat_env = self.phases[phase].execute(chat_env,
+                                                            self.chat_turn_limit_default if max_turn_step <= 0 else max_turn_step,
+                                                            need_reflect,
+                                                            chat_env.paraphrase_message)
+                        log_visualize(f"SimplePhase:[{phase}] executed successfully.")
+                    except Exception as e:
+                        log_visualize(f"Error occurred during the execution of SimplePhase:[{phase}]. Error: {str(e)}")
+                        raise e
                 else:
-                    print(f"Phase '{phase}' is not yet implemented. Please write its config in phaseConfig.json and implement it in chatdev.phase")
-            
+                    raise RuntimeError(f"Phase '{phase}' is not yet implemented in chatdev.phase")
             chat_env = self.update_chat_env(chat_env)
-        
         return chat_env
 
 
