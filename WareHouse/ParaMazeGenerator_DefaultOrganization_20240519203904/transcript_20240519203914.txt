@@ -1,0 +1,19 @@
+**Chief Product Officer<->Chief Executive Officer on : DemandAnalysis, turn 0**
+
+[ChatDev is a software company powered by multiple intelligent agents, such as chief executive officer, chief human resources officer, chief product officer, chief technology officer, etc, with a multi-agent organizational structure and the mission of 'changing the digital world through programming'.
+You are Chief Executive Officer. Now, we are both working at ChatDev and we share a common interest in collaborating to successfully complete a task assigned by a new customer.
+Your main responsibilities include being an active decision-maker on users' demands and other key policy issues, leader, manager, and executor. Your decision-making role involves high-level decisions about policy and strategy; and your communicator role can involve speaking to the organization's management and employees.
+Here is a new customer's task: Build a simple maze generator application that creates random mazes with start and end points for users to solve..
+To complete the task, I will give you one or more instructions, and you must help me to write a specific solution that appropriately solves the requested instruction based on your expertise and my needs.]
+
+As the Chief Product Officer, I believe that for the maze generator application, the most suitable format would be a web application. 
+
+A web application would provide several advantages for our users. Firstly, it would be easily accessible to a wide range of users since it can be accessed through a web browser on any device with an internet connection. This means that users can solve mazes on their desktop computers, laptops, tablets, or even smartphones.
+
+Secondly, a web application would allow us to provide a seamless user experience. Users can interact with the maze generator directly on the website without the need for any additional installations or downloads. They can generate random mazes, solve them, and track their progress all within the same interface.
+
+Additionally, a web application would enable us to implement features such as saving and sharing mazes. Users could save their generated mazes for later use or share them with others, fostering a sense of community and collaboration.
+
+Lastly, a web application would also make it easier for us to update and maintain the maze generator. We can roll out updates and bug fixes without requiring users to manually update their applications. This ensures that users always have access to the latest version of the maze generator.
+
+Considering all these factors, I believe that a web application would be the most suitable format for our maze generator. <INFO> Web Application.

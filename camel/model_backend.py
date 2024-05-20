@@ -14,7 +14,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 import tiktoken
 
 from camel.typing import ModelType
@@ -73,12 +75,12 @@ class OpenAIModel(ModelBackend):
         if openai_new_api:
             # Experimental, add base_url
             if BASE_URL:
-                client = openai.OpenAI(
+                client = OpenAI(
                     api_key=OPENAI_API_KEY,
                     base_url=BASE_URL,
                 )
             else:
-                client = openai.OpenAI(
+                client = OpenAI(
                     api_key=OPENAI_API_KEY
                 )
 
@@ -127,19 +129,19 @@ class OpenAIModel(ModelBackend):
             num_max_completion_tokens = num_max_token - num_prompt_tokens
             self.model_config_dict['max_tokens'] = num_max_completion_tokens
 
-            response = openai.ChatCompletion.create(*args, **kwargs, model=self.model_type.value,
+            response = client.chat.completions.create(*args, **kwargs, model=self.model_type.value,
                                                     **self.model_config_dict)
 
             cost = prompt_cost(
                 self.model_type.value,
-                num_prompt_tokens=response["usage"]["prompt_tokens"],
-                num_completion_tokens=response["usage"]["completion_tokens"]
+                num_prompt_tokens=response.usage.prompt_tokens,
+                num_completion_tokens=response.usage.completion_tokens
             )
 
             log_visualize(
                 "**[OpenAI_Usage_Info Receive]**\nprompt_tokens: {}\ncompletion_tokens: {}\ntotal_tokens: {}\ncost: ${:.6f}\n".format(
-                    response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"],
-                    response["usage"]["total_tokens"], cost))
+                    response.usage.prompt_tokens, response.usage.completion_tokens,
+                    response.usage.total_tokens, cost))
             if not isinstance(response, Dict):
                 raise RuntimeError("Unexpected return from OpenAI API")
             return response

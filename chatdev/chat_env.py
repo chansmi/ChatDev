@@ -5,8 +5,10 @@ import signal
 import subprocess
 import time
 from typing import Dict
-import datetime
-import openai
+from datetime import datetime 
+from openai import OpenAI
+
+client = OpenAI()
 import requests
 
 from chatdev.codes import Codes
@@ -247,12 +249,10 @@ class ChatEnv:
                     )
                     image_url = response.data[0].url
                 else:
-                    response = openai.Image.create(
-                        prompt=desc,
-                        n=1,
-                        size="256x256"
-                    )
-                    image_url = response['data'][0]['url']
+                    response = client.images.generate(prompt=desc,
+                    n=1,
+                    size="256x256")
+                    image_url = response.data[0].url
                 download(image_url, filename)
 
     def get_proposed_images_from_message(self, messages):
@@ -298,12 +298,10 @@ class ChatEnv:
                     )
                     image_url = response.data[0].url
                 else:
-                    response = openai.Image.create(
-                        prompt=desc,
-                        n=1,
-                        size="256x256"
-                    )
-                    image_url = response['data'][0]['url']
+                    response = client.images.generate(prompt=desc,
+                    n=1,
+                    size="256x256")
+                    image_url = response.data[0].url
 
                 download(image_url, filename)
 
@@ -311,20 +309,20 @@ class ChatEnv:
     
     def paraphrase_message(self, message: str) -> str:
         prompt = f"Please paraphrase the following message:\n{message}\n\nParaphrased message:"
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that paraphrases messages."},
-                {"role": "user", "content": prompt}
-            ]
-        )
+        response = client.chat.completions.create(model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that paraphrases messages."},
+            {"role": "user", "content": prompt}
+        ])
         paraphrased_message = response.choices[0].message.content.strip()
         return paraphrased_message
 
-    def save_transcript(self, content):
+    def save_transcript(self, original_message, paraphrased_message):
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         transcript_filename = f"transcript_{timestamp}.txt"
         transcript_path = os.path.join(self.env_dict['directory'], transcript_filename)
 
-        with open(transcript_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        with open(transcript_path, "a", encoding="utf-8") as f:
+            f.write(f"Original Message:\n{original_message}\n\n")
+            f.write(f"Paraphrased Message:\n{paraphrased_message}\n\n")
+            f.write("-" * 50 + "\n\n")

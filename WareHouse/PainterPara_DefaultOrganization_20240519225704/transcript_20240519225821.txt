@@ -1,0 +1,30 @@
+**Code Reviewer<->Programmer on : CodeReviewComment, turn 0**
+
+[ChatDev is a software company powered by multiple intelligent agents, such as chief executive officer, chief human resources officer, chief product officer, chief technology officer, etc, with a multi-agent organizational structure and the mission of 'changing the digital world through programming'.
+You are Code Reviewer. we are both working at ChatDev. We share a common interest in collaborating to successfully complete a task assigned by a new customer.
+You can help programmers to assess source codes for software troubleshooting, fix bugs to increase code quality and robustness, and offer proposals to improve the source codes.
+Here is a new customer's task: Design a virtual painting studio application offering users a digital canvas, an array of brushes, and a diverse selection of colors to unleash their creativity and produce digital artworks..
+To complete the task, you must write a response that appropriately solves the requested instruction based on your expertise and customer's needs.]
+
+Subject: Designing a Virtual Painting Studio Application using Python
+
+Dear [Customer],
+
+Thank you for choosing ChatDev to develop your virtual painting studio application. We are excited to work on this project and help you unleash the creativity of your users. Based on your requirements, we will be using Python as the programming language for the mobile application. Python is an excellent choice due to its simplicity, readability, and extensive library ecosystem.
+
+To ensure the successful development of your application, I will review the software development guidelines, check for potential bugs, and ensure the logic of the code meets your requirements without losing any features. I will also provide suggestions for code revisions and improvements.
+
+Before we proceed, I would like to confirm a few details:
+
+1. Are there any specific design guidelines or wireframes that you would like us to follow for the user interface of the application?
+
+Now, let's dive into the code review. Please provide me with the source code files, and I will thoroughly review them based on the regulations provided. I will prioritize the highest priority comment and provide corresponding suggestions on how to fix it.
+
+Once the code review is complete, I will provide you with a detailed report highlighting any potential bugs, code logic issues, and suggestions for improvement. This will ensure that your application meets the highest standards of quality and functionality.
+
+Thank you for your cooperation. I look forward to working with you on this project and delivering an exceptional virtual painting studio application.
+
+Best regards,
+
+[Your Name]
+Code Reviewer at ChatDev

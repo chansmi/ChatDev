@@ -1,6 +1,8 @@
 import os
 import re
 from abc import ABC, abstractmethod
+from datetime import datetime
+
 
 from camel.agents import RolePlaying
 from camel.messages import ChatMessage
@@ -124,29 +126,57 @@ class Phase(ABC):
         # 1.2 add "<INFO>" to the reflected content of the chat (which may be terminated chat without "<INFO>" mark)
         # 2. without "<INFO>" mark, which means the chat is terminated or normally ended without generating a marked conclusion, and there is no need to reflect
         for i in range(chat_turn_limit):
-            # start the chat, we represent the user and send msg to assistant
-            # 1. so the input_user_msg should be assistant_role_prompt + phase_prompt
-            # 2. then input_user_msg send to LLM and get assistant_response
-            # 3. now we represent the assistant and send msg to user, so the input_assistant_msg is user_role_prompt + assistant_response
-            # 4. then input_assistant_msg send to LLM and get user_response
-            # all above are done in role_play_session.step, which contains two interactions with LLM
-            # the first interaction is logged in role_play_session.init_chat
+            print(f"Original user message: {input_user_msg.content}")
             paraphrased_user_msg = paraphrase_func(input_user_msg.content)
-            assistant_response, _ = role_play_session.step(ChatMessage(paraphrased_user_msg), chat_turn_limit == 1)
+            print(f"Paraphrased user message: {paraphrased_user_msg}")
+            
+            paraphrased_user_msg_obj = ChatMessage(
+                content=paraphrased_user_msg,
+                role_type=input_user_msg.role_type,
+                meta_dict=input_user_msg.meta_dict,
+                role=input_user_msg.role,
+                role_name=input_user_msg.role_name
+            )
+
+            assistant_response, _ = role_play_session.step(
+                paraphrased_user_msg_obj,
+                assistant_only=False
+            )
 
             if isinstance(assistant_response.msg, ChatMessage):
+                print(f"Original assistant message: {assistant_response.msg.content}")
                 paraphrased_assistant_msg = paraphrase_func(assistant_response.msg.content)
-                user_response, _ = role_play_session.step(ChatMessage(paraphrased_assistant_msg))
+                print(f"Paraphrased assistant message: {paraphrased_assistant_msg}")
+                
+                paraphrased_assistant_msg_obj = ChatMessage(
+                    content=paraphrased_assistant_msg,
+                    role_type=assistant_response.msg.role_type,
+                    meta_dict=assistant_response.msg.meta_dict,
+                    role=assistant_response.msg.role,
+                    role_name=assistant_response.msg.role_name
+                )
+
+                user_response, _ = role_play_session.step(
+                    paraphrased_assistant_msg_obj,
+                    assistant_only=False
+                )
             else:
                 user_response = assistant_response
+
+            if role_play_session.user_agent.info or role_play_session.assistant_agent.info:
+                break
+
+            if chat_turn_limit > 1 and isinstance(user_response.msg, ChatMessage):
+                input_user_msg = user_response.msg
+            else:
+                break
+            
             conversation_meta = "**" + assistant_role_name + "<->" + user_role_name + " on : " + str(
                 phase_name) + ", turn " + str(i) + "**\n\n"
 
             # TODO: max_tokens_exceeded errors here
             if isinstance(assistant_response.msg, ChatMessage):
                 # we log the second interaction here
-                chat_env.save_transcript(conversation_meta + "[" + role_play_session.user_agent.system_message.content + "]\n\n" + assistant_response.msg.content)
-
                 log_visualize(role_play_session.assistant_agent.role_name,
                               conversation_meta + "[" + role_play_session.user_agent.system_message.content + "]\n\n" + assistant_response.msg.content)
                 if role_play_session.assistant_agent.info:
@@ -157,7 +187,7 @@ class Phase(ABC):
 
             if isinstance(user_response.msg, ChatMessage):
                 # here is the result of the second interaction, which may be used to start the next chat turn
-                chat_env.save_transcript(conversation_meta + "[" + role_play_session.assistant_agent.system_message.content + "]\n\n" + user_response.msg.content)
+                #chat_env.save_transcript(conversation_meta + "[" + role_play_session.assistant_agent.system_message.content + "]\n\n" + user_response.msg.content)
                 log_visualize(role_play_session.user_agent.role_name,
                               conversation_meta + "[" + role_play_session.assistant_agent.system_message.content + "]\n\n" + user_response.msg.content)
                 if role_play_session.user_agent.info:
@@ -303,19 +333,19 @@ class Phase(ABC):
         self.update_phase_env(chat_env)
         self.seminar_conclusion = \
             self.chatting(chat_env=chat_env,
-                        task_prompt=chat_env.env_dict['task_prompt'],
-                        need_reflect=need_reflect,
-                        assistant_role_name=self.assistant_role_name,
-                        user_role_name=self.user_role_name,
-                        phase_prompt=self.phase_prompt,
-                        phase_name=self.phase_name,
-                        assistant_role_prompt=self.assistant_role_prompt,
-                        user_role_prompt=self.user_role_prompt,
-                        chat_turn_limit=chat_turn_limit,
-                        placeholders=self.phase_env,
-                        memory=chat_env.memory,
-                        model_type=self.model_type,
-                        paraphrase_func=paraphrase_func)
+                      task_prompt=chat_env.env_dict['task_prompt'],
+                      need_reflect=need_reflect,
+                      assistant_role_name=self.assistant_role_name,
+                      user_role_name=self.user_role_name,
+                      phase_prompt=self.phase_prompt,
+                      phase_name=self.phase_name,
+                      assistant_role_prompt=self.assistant_role_prompt,
+                      user_role_prompt=self.user_role_prompt,
+                      chat_turn_limit=chat_turn_limit,
+                      placeholders=self.phase_env,
+                      memory=chat_env.memory,
+                      model_type=self.model_type,
+                      paraphrase_func=paraphrase_func)
         chat_env = self.update_chat_env(chat_env)
         return chat_env
 
@@ -369,11 +399,12 @@ class Coding(Phase):
 
     def update_chat_env(self, chat_env) -> ChatEnv:
         chat_env.update_codes(self.seminar_conclusion)
-        if len(chat_env.codes.codebooks.keys()) == 0:
-            raise ValueError("No Valid Codes.")
-        chat_env.rewrite_codes("Finish Coding")
-        log_visualize(
-            "**[Software Info]**:\n\n {}".format(get_info(chat_env.env_dict['directory'], self.log_filepath)))
+        if len(chat_env.codes.codebooks.keys()) > 0:
+            chat_env.rewrite_codes("Finish Coding")
+            log_visualize(
+                "**[Software Info]**:\n\n {}".format(get_info(chat_env.env_dict['directory'], self.log_filepath)))
+        else:
+            log_visualize("No valid codes generated. Skipping code rewriting step.")
         return chat_env
 
 
@@ -660,3 +691,11 @@ class Manual(Phase):
         chat_env._update_manuals(self.seminar_conclusion)
         chat_env.rewrite_manuals()
         return chat_env
+
+def save_message(agent_type, message, message_type, directory):
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    message_filename = f"{agent_type}_{message_type}_message_{timestamp}.txt"
+    message_path = os.path.join(directory, message_filename)
+
+    with open(message_path, "w", encoding="utf-8") as file:
+        file.write(message)

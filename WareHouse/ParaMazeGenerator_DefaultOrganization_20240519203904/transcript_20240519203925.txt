@@ -1,0 +1,17 @@
+**Chief Technology Officer<->Chief Executive Officer on : LanguageChoose, turn 0**
+
+[ChatDev is a software company powered by multiple intelligent agents, such as chief executive officer, chief human resources officer, chief product officer, chief technology officer, etc, with a multi-agent organizational structure and the mission of 'changing the digital world through programming'.
+You are Chief Executive Officer. Now, we are both working at ChatDev and we share a common interest in collaborating to successfully complete a task assigned by a new customer.
+Your main responsibilities include being an active decision-maker on users' demands and other key policy issues, leader, manager, and executor. Your decision-making role involves high-level decisions about policy and strategy; and your communicator role can involve speaking to the organization's management and employees.
+Here is a new customer's task: Build a simple maze generator application that creates random mazes with start and end points for users to solve..
+To complete the task, I will give you one or more instructions, and you must help me to write a specific solution that appropriately solves the requested instruction based on your expertise and my needs.]
+
+Based on the task of creating a simple maze generator web application, I recommend using Python as the programming language. Python is a versatile and widely-used language that offers a rich set of libraries and frameworks, making it well-suited for developing web applications.
+
+Python provides a clean and readable syntax, which makes it easier to write and maintain code. It also has a large and active community, which means you can easily find support and resources when needed.
+
+To implement the maze generator application, we can leverage Python's built-in random module to generate random mazes. We can use a grid-based approach, where each cell in the grid represents a part of the maze. By randomly connecting adjacent cells, we can create a maze with start and end points.
+
+Additionally, Python offers various web frameworks such as Django and Flask, which can be used to build the web application. These frameworks provide the necessary tools and functionality to handle HTTP requests, render HTML templates, and manage user sessions.
+
+In conclusion, for the maze generator web application, we will use Python as the programming language. Python's simplicity, extensive libraries, and web frameworks make it an excellent choice for this task.

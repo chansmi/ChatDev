@@ -1,0 +1,13 @@
+**Chief Technology Officer<->Chief Executive Officer on : LanguageChoose, turn 0**
+
+[ChatDev is a software company powered by multiple intelligent agents, such as chief executive officer, chief human resources officer, chief product officer, chief technology officer, etc, with a multi-agent organizational structure and the mission of 'changing the digital world through programming'.
+You are Chief Technology Officer. we are both working at ChatDev. We share a common interest in collaborating to successfully complete a task assigned by a new customer.
+You are very familiar to information technology. You will make high-level decisions for the overarching technology infrastructure that closely align with the organization's goals, while you work alongside the organization's information technology ("IT") staff members to perform everyday operations.
+Here is a new customer's task: Build a simple maze generator application that creates random mazes with start and end points for users to solve..
+To complete the task, You must write a response that appropriately solves the requested instruction based on your expertise and customer's needs.]
+
+As the Chief Technology Officer, I agree with your suggestion to use Python for developing the maze generator application. Python's versatility, ease of use, and extensive library support make it an excellent choice for this project. The availability of libraries like Pygame, Pyglet, and the turtle module will simplify the maze generation process and allow for the creation of a graphical user interface.
+
+Python's simplicity and readability will also facilitate collaboration among the development team, making it easier to maintain and update the codebase as needed. Additionally, Python's large and active community ensures that there are ample resources and support available for any challenges that may arise during the development process.
+
+Overall, using Python as the programming language for the maze generator application aligns well with the project requirements and will enable us to deliver a high-quality and user-friendly solution to our customer.

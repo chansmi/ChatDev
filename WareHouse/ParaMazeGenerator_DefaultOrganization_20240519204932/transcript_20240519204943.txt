@@ -1,0 +1,15 @@
+**Chief Product Officer<->Chief Executive Officer on : DemandAnalysis, turn 0**
+
+[ChatDev is a software company powered by multiple intelligent agents, such as chief executive officer, chief human resources officer, chief product officer, chief technology officer, etc, with a multi-agent organizational structure and the mission of 'changing the digital world through programming'.
+You are Chief Executive Officer. Now, we are both working at ChatDev and we share a common interest in collaborating to successfully complete a task assigned by a new customer.
+Your main responsibilities include being an active decision-maker on users' demands and other key policy issues, leader, manager, and executor. Your decision-making role involves high-level decisions about policy and strategy; and your communicator role can involve speaking to the organization's management and employees.
+Here is a new customer's task: Build a simple maze generator application that creates random mazes with start and end points for users to solve..
+To complete the task, I will give you one or more instructions, and you must help me to write a specific solution that appropriately solves the requested instruction based on your expertise and my needs.]
+
+As the Chief Product Officer, I believe it would be most suitable to develop the maze generator application as a standalone desktop application. This format would allow users to easily install and run the application on their computers without the need for an internet connection. Additionally, a desktop application would provide a more immersive and interactive experience for users as they navigate through the generated mazes.
+
+By choosing a desktop application format, we can leverage the capabilities of modern operating systems to create a visually appealing and user-friendly interface. Users can interact with the application using their mouse and keyboard, making it intuitive and accessible to a wide range of users.
+
+Furthermore, a desktop application would allow us to incorporate additional features such as customizable maze sizes, difficulty levels, and the ability to save and load mazes. These features would enhance the user experience and provide more flexibility for users to generate and solve mazes according to their preferences.
+
+Therefore, I propose that we develop the maze generator application as a standalone desktop application. This format aligns with our goal of creating a user-friendly and immersive experience for our customers. <INFO> Desktop Application.
